@@ -1,15 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> 
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Vocabulary Learning App</title>
-    </head>
+    <style>
+        /* Весь CSS встроен, чтобы избежать проблем */
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #f0f4f7);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-link: var(--tg-theme-link-color, #0088cc);
+            --tg-hint: var(--tg-theme-hint-color, #888888);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            padding: 20px;
+        }
+        .container {
+            background-color: var(--tg-secondary-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        h1 { 
+            color: var(--tg-link); 
+            margin-bottom: 20px; 
+            font-size: 1.5em;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .error { 
+            background-color: #ffe0e0;
+            color: #cc0000; 
+        }
+        .success { 
+            background-color: #e0ffe0;
+            color: #008000; 
+        }
+        #nav-bar button {
+            background-color: var(--tg-link);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #content-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--tg-bg);
+            border-radius: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
+    <div id="auth-screen">
+        <div class="container">
+            <h1>🔐 Авторизация через Telegram</h1>
+            <p>Пожалуйста, подождите. Ваша личность подтверждается...</p>
+            <div class="status" id="status-message">Идет проверка данных...</div>
+            <p style="font-size: 0.8em; opacity: 0.7;">ID: <span id="telegram-id">--</span></p>
+        </div>
+    </div>
+
+    <div id="main-app" class="container" style="display: none;">
+        <h1 id="welcome-message">Добро пожаловать!</h1>
+        
+        <div id="nav-bar">
+            <button onclick="navigate('dashboard')">🏠 Главная</button>
+            <button onclick="navigate('profile')">👤 Профиль</button>
+            <button onclick="navigate('lessons')">📚 Уроки</button>
+        </div>
+
+        <div id="content-area">
+            </div>
+    </div>
+
+    <script>
+        // Функция для переключения содержимого (наши "страницы")
+        function navigate(page) {
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = ''; // Очищаем старый контент
+            
+            // В будущем здесь будут сложные функции, которые делают fetch-запросы на бэкенд
+            if (page === 'dashboard') {
+                contentArea.innerHTML = '<h2>Сводка</h2><p>Ваш прогресс: 50% пройденных слов.</p><p>Нажмите "Уроки", чтобы продолжить.</p>';
+            } else if (page === 'profile') {
+                contentArea.innerHTML = '<h2>Профиль</h2><p>Здесь будет ваша статистика, загруженная с бэкенда по JWT-токену.</p><p>Токен сохранен в LocalStorage.</p>';
+            } else if (page === 'lessons') {
+                contentArea.innerHTML = '<h2>Уроки</h2><ul><li>Урок 1: Фрукты</li><li>Урок 2: Животные</li></ul>';
+            }
+        }
+
+        // Функция для переключения с экрана авторизации на главный экран
+        function showApp(userName) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('welcome-message').textContent = `Добро пожаловать, ${userName}!`;
+            navigate('dashboard'); // Показываем главную страницу по умолчанию
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusElement = document.getElementById('status-message');
+            const idElement = document.getElementById('telegram-id');
+            const token = localStorage.getItem('jwt_token');
+
+            // --- ШАГ 0: Если токен уже есть, пропускаем авторизацию ---
+            if (token && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                const userName = window.Telegram.WebApp.initDataUnsafe.user.first_name || 'Пользователь';
+                showApp(userName);
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                return; // Выходим из функции, так как авторизация не нужна
+            }
+
+
+            // !!! ВСТАВЬТЕ АДРЕС NGROK ДЛЯ ВАШЕГО БЭКЕНДА (порт 8080) !!!
+            const backendUrl = 'https://[ВАШ-АДРЕС-NGROK].ngrok.io/api/auth/telegram'; 
+            // -----------------------------------------------------------------
+
+            // --- ОСНОВНАЯ ЛОГИКА АВТОРИЗАЦИИ ---
+            if (window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                
+                const unsafeData = window.Telegram.WebApp.initDataUnsafe;
+                const user = unsafeData.user;
+
+                if (user && unsafeData.auth_date && unsafeData.hash) {
+                    
+                    idElement.textContent = user.id;
+                    statusElement.textContent = `Данные ${user.first_name} получены. Отправка на бэкенд...`;
+                    
+                    const authDataJson = {
+                        id: user.id,
+                        first_name: user.first_name || null,
+                        last_name: user.last_name || null,
+                        username: user.username || null,
+                        photo_url: user.photo_url || null,
+                        auth_date: unsafeData.auth_date, 
+                        hash: unsafeData.hash
+                    };
+
+                    fetch(backendUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(authDataJson)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => { 
+                                throw new Error('Бэкенд отказал: ' + response.status + ' | ' + text.substring(0, 100)) 
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // УСПЕХ! Сохраняем токен и переключаем экран
+                        localStorage.setItem('jwt_token', data.token); // Сохраняем токен для будущих запросов
+                        
+                        statusElement.classList.add('success');
+                        statusElement.textContent = '✅ Успех! JWT-токен получен.';
+                        
+                        showApp(user.first_name || 'Пользователь'); // Показываем главный экран
+
+                        window.Telegram.WebApp.showAlert('Авторизация завершена!');
+                    })
+                    .catch(error => {
+                        statusElement.classList.add('error');
+                        statusElement.textContent = `❌ Ошибка: ${error.message}. Убедитесь, что Ngrok запущен.`;
+                        console.error('Ошибка авторизации:', error);
+                    });
+                } else {
+                    statusElement.classList.add('error');
+                    statusElement.textContent = '❌ Неполные данные от Telegram.';
+                }
+                
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            } else {
+                statusElement.classList.add('error');
+                statusElement.textContent = '❌ Не удалось инициализировать. Запускайте ТОЛЬКО через Telegram.';
+            }
+        });
+    </script>
+</body>
+</html>
   
