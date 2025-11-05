@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика матча | Match Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================================================= */
+        /* CSS Стили: Переменные (сокращенный набор) */
+        /* ========================================================================= */
+        :root {
+            --background: #ffffff;
+            --foreground: #030213;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --blue-100: #dbeafe;
+            --blue-900: #1e3a8a;
+            --blue-50: #eff6ff;
+            --slate-600: #475569;
+            --slate-900: #0f172a;
+            --red-600: #dc2626;
+            --red-100: #fee2e2;
+            --green-700: #047857;
+            --green-600: #16a34a;
+            --green-100: #dcfce7;
+            --yellow-700: #a16207;
+            --yellow-100: #fef9c3;
+            --border: rgba(0, 0, 0, 0.1);
+            --font-weight-medium: 500;
+            --radius: 0.625rem;
+        }
+
+        /* Базовые стили */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            background-color: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            min-height: 100vh;
+        }
+        h1 { font-size: 1.5rem; font-weight: var(--font-weight-medium); line-height: 1.5; margin: 0; }
+        h2 { font-size: 1.25rem; font-weight: var(--font-weight-medium); line-height: 1.5; margin: 0; }
+        h3 { font-size: 1.125rem; font-weight: var(--font-weight-medium); line-height: 1.5; margin: 0; }
+
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .pb-8 { padding-bottom: 2rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .flex-col { flex-direction: column; }
+        .text-center { text-align: center; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .grid { display: grid; }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .w-full { width: 100%; }
+
+        /* Component styles */
+        .header-bg { background-color: var(--blue-600); color: var(--background); }
+        .text-blue-100 { color: var(--blue-100); }
+        .text-blue-900 { color: var(--blue-900); }
+        .text-slate-600 { color: var(--slate-600); }
+
+        .card {
+            background-color: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        /* Button & Upload Styles */
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1rem;
+            height: 3rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+        .button-primary { background-color: var(--blue-600); color: var(--background); }
+        .button-primary:hover { background-color: var(--blue-700); }
+        
+        .upload-icon-container {
+            width: 4rem; height: 4rem;
+            background-color: var(--blue-100);
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .upload-icon { color: var(--blue-600); font-size: 2rem; }
+
+        /* Progress Bar (имитация) */
+        .progress-bar {
+            height: 0.5rem;
+            background-color: var(--blue-100);
+            border-radius: 9999px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: var(--blue-600);
+            /* Симуляция прогресса 65% для примера */
+            width: 65%; 
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Badge Component */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-green { background-color: var(--green-100); color: var(--green-700); }
+        .badge-yellow { background-color: var(--yellow-100); color: var(--yellow-700); }
+        .badge-red { background-color: var(--red-100); color: var(--red-600); }
+
+
+        /* ========================================================================= */
+        /* Tabs & Table Styles (Симуляция табов через CSS) */
+        /* ========================================================================= */
+        .tabs { margin-bottom: 1.5rem; }
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        .tabs-trigger {
+            padding: 0.75rem 0;
+            text-align: center;
+            font-weight: var(--font-weight-medium);
+            color: var(--slate-600);
+            cursor: pointer;
+            transition: color 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tabs-trigger:hover { color: var(--blue-600); }
+
+        /* Скрываем нативные радиокнопки */
+        .tab-input { display: none; }
+        
+        /* Активный таб */
+        #tab-table:checked ~ .tabs-list .trigger-table,
+        #tab-graph:checked ~ .tabs-list .trigger-graph {
+            color: var(--blue-600);
+            border-color: var(--blue-600);
+        }
+
+        /* Содержимое табов */
+        .tabs-content { display: none; padding-top: 1rem; }
+        #tab-table:checked ~ .content-table,
+        #tab-graph:checked ~ .content-graph {
+            display: block;
+        }
+
+        /* Table Styles */
+        .table-container { overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table-header { background-color: var(--blue-50); }
+        .table th, .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap; /* Чтобы таблица не ломалась на мобилке */
+        }
+        .table th { color: var(--blue-900); font-weight: var(--font-weight-medium); }
+        .table tr:last-child td { border-bottom: none; }
+
+        /* Граф (Простая имитация, т.к. D3.js или canvas невозможны) */
+        .team-graph {
+            height: 200px;
+            background-color: var(--blue-50);
+            border: 1px dashed var(--blue-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: var(--slate-600);
+            border-radius: var(--radius);
+        }
+        .legend-box {
+            padding: 0.75rem;
+            background-color: var(--blue-50);
+            border: 1px solid var(--blue-100);
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--slate-600);
+        }
+        .legend-box strong { color: var(--blue-900); }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <div class="header-bg p-6 pb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="icon" style="color: white;">📈</span>
+                <h1>Аналитика матча</h1>
+            </div>
+            <p class="text-blue-100">ФК Спартак • 28 окт 2025</p>
+        </div>
+
+        <div class="p-4 -mt-4">
+            <div>
+                <div class="card p-4 mb-4" style="border-width: 2px; border-color: var(--blue-100);">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-slate-600 mb-1">Владение</div>
+                            <div class="text-blue-900">58%</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-600 mb-1">Передачи</div>
+                            <div class="text-blue-900">487</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-600 mb-1">Удары</div>
+                            <div class="text-blue-900">18</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <input type="radio" id="tab-table" name="tabs" class="tab-input" checked>
+                    <input type="radio" id="tab-graph" name="tabs" class="tab-input">
+
+                    <div class="tabs-list">
+                        <label for="tab-table" class="tabs-trigger trigger-table">Таблица</label>
+                        <label for="tab-graph" class="tabs-trigger trigger-graph">Граф</label>
+                    </div>
+
+                    <div class="tabs-content content-table">
+                        <div class="card overflow-hidden" style="border-width: 2px; border-color: var(--blue-100);">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead class="table-header">
+                                        <tr>
+                                            <th>№</th>
+                                            <th>Игрок</th>
+                                            <th>Владение</th>
+                                            <th>Передачи</th>
+                                            <th>Потери</th>
+                                            <th>Удары</th>
+                                            <th>Точность</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>10</td>
+                                            <td class="text-slate-900">Иванов</td>
+                                            <td>8.5 мин</td>
+                                            <td>67</td>
+                                            <td class="text-red-600">3</td>
+                                            <td>5</td>
+                                            <td><div class="badge badge-green">89%</div></td>
+                                        </tr>
+                                        <tr>
+                                            <td>7</td>
+                                            <td class="text-slate-900">Петров</td>
+                                            <td>7.2 мин</td>
+                                            <td>54</td>
+                                            <td class="text-red-600">5</td>
+                                            <td>3</td>
+                                            <td><div class="badge badge-green">85%</div></td>
+                                        </tr>
+                                        <tr>
+                                            <td>9</td>
+                                            <td class="text-slate-900">Сидоров</td>
+                                            <td>6.8 мин</td>
+                                            <td>42</td>
+                                            <td class="text-red-600">4</td>
+                                            <td>7</td>
+                                            <td><div class="badge badge-yellow">78%</div></td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td class="text-slate-900">Козлов</td>
+                                            <td>9.1 мин</td>
+                                            <td>78</td>
+                                            <td class="text-red-600">2</td>
+                                            <td>1</td>
+                                            <td><div class="badge badge-green">92%</div></td>
+                                        </tr>
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="legend-box">
+                            <p>
+                                <strong>Легенда:</strong> Владение — время с мячом, Передачи — успешные передачи, Потери — потери мяча, Удары — удары по воротам, Точность — процент успешных передач
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="tabs-content content-graph">
+                        <div class="card p-4" style="border-width: 2px; border-color: var(--blue-100);">
+                            <h3 class="text-blue-900 mb-4">Граф взаимодействий игроков</h3>
+                            <div class="team-graph">
+                                [Граф визуализации передач - требует JS, здесь простая заглушка]
+                            </div>
+                            <div class="legend-box">
+                                <p>
+                                    <strong>Граф показывает:</strong> Узлы — игроки, линии — передачи между игроками. Толщина линии — количество передач, цвет — точность (зелёный ≥85%, жёлтый <85%)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
