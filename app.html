@@ -1,550 +1,603 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Футбольный Аналитик | Приложение</title>
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* ========================================================================= */
-        /* CSS Стили для UI (ОСНОВНЫЕ) */
-        /* ========================================================================= */
-        :root {
-            --tg-bg: var(--tg-theme-bg-color, #f0f4f7);
-            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
-            --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-link: var(--tg-theme-link-color, #0088cc);
-            --background: var(--tg-secondary-bg);
-            --foreground: var(--tg-text);
-            --blue-600: #2563eb;
-            --blue-100: #dbeafe;
-            --blue-900: #1e3a8a;
-            --blue-50: #eff6ff;
-            --slate-600: #475569;
-            --green-600: #16a34a;
-            --red-600: #dc2626;
-            --red-100: #fee2e2;
-            --border: rgba(0, 0, 0, 0.1);
-            --font-weight-medium: 500;
-            --radius: 0.625rem;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Футбольный Аналитик | Приложение</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ========================================================================= */
+        /* CSS Стили для UI (ОСНОВНЫЕ) */
+        /* ========================================================================= */
+        :root {
+            /* Переменные цветов Telegram */
+            --tg-bg: var(--tg-theme-bg-color, #f0f4f7);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #2481cc);
+            --tg-button: var(--tg-theme-button-color, #2481cc);
+            --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
 
-        body {
-            font-family: 'Roboto', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI";
-            margin: 0;
-            padding: 0;
-            background-color: var(--tg-bg);
-            color: var(--foreground);
-            min-height: 100vh;
-            padding-bottom: 4.5rem; 
-        }
-        .app-content { width: 100%; max-width: 450px; margin: 0 auto; display: block !important; }
-        
-        /* Utility Classes */
-        .p-4 { padding: 1rem; }
-        .p-6 { padding: 1.5rem; }
-        .pb-8 { padding-bottom: 2rem; }
-        .mt-4 { margin-top: 1rem; }
-        .mb-3 { margin-bottom: 0.75rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-6 { margin-bottom: 1.5rem; }
-        .space-y-3 > * + * { margin-top: 0.75rem; }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-3 { gap: 0.75rem; }
-        .grid { display: grid; }
-        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .w-full { width: 100%; }
-        
-        /* Form Styles */
-        input[type="number"], input[type="text"], input[type="datetime-local"] {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            background-color: var(--tg-secondary-bg);
-            color: var(--tg-text);
-            font-size: 1rem;
-            box-sizing: border-box; /* Важно для full-width input */
-        }
-        label {
-            display: block;
-            margin-top: 0.75rem;
-            font-weight: var(--font-weight-medium);
-            color: var(--tg-text);
-        }
-        .message {
-            padding: 0.75rem;
-            border-radius: var(--radius);
-            font-weight: 500;
-        }
+            /* Кастомные цвета */
+            --primary: var(--tg-button);
+            --primary-text: var(--tg-button-text);
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: rgba(0, 0, 0, 0.1);
+            
+            --radius: 0.75rem; /* Скругление углов */
+        }
 
-        /* Components */
-        .header-bg { background-color: var(--blue-600); color: var(--background); }
-        .text-blue-100 { color: var(--blue-100); }
-        .text-blue-900 { color: var(--blue-900); }
-        .text-slate-600 { color: var(--slate-600); }
-        .card { background-color: var(--background); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
-        .stat-icon-blue { background-color: var(--blue-100); color: var(--blue-600); }
-        .stat-icon-red { background-color: var(--red-100); color: var(--red-600); }
-        .rounded-full { border-radius: 9999px; }
-        .last-match-card { background-color: var(--blue-50); border-color: var(--blue-100); border-width: 2px; }
-        .last-match-badge { background-color: var(--green-600); color: var(--background); }
-        .last-match-button { 
-            background-color: var(--blue-600); color: var(--background); height: 3rem; text-decoration: none; 
-            display: flex; align-items: center; justify-content: center; padding: 0 1rem; 
-            border-radius: var(--radius); font-weight: 500; border: none; cursor: pointer;
-        }
-        .badge-draw { background-color: #fef9c3; color: #a16207; }
+        body {
+            font-family: 'Roboto', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI";
+            margin: 0;
+            padding: 0;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            min-height: 100vh;
+            padding-bottom: 5.5rem; /* Отступ для нижней панели */
+        }
+        .app-content { width: 100%; max-width: 500px; margin: 0 auto; padding-top: 1rem; }
+        
+        /* Typography */
+        h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--tg-text); }
+        h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--tg-text); }
+        .text-hint { color: var(--tg-hint); font-size: 0.9rem; }
+        .font-medium { font-weight: 500; }
+        
+        /* Utility Classes */
+        .p-4 { padding: 1rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-3 { gap: 0.75rem; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .w-full { width: 100%; }
+        
+        /* Card Component */
+        .card { 
+            background-color: var(--tg-secondary-bg); 
+            border-radius: var(--radius); 
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); 
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
 
-        /* Навигация и Экраны */
-        .bottom-nav { 
-             position: fixed; bottom: 0; left: 0; right: 0; height: 4.5rem; 
-             background-color: var(--background); border-top: 1px solid var(--border); 
-             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); display: flex; 
-             justify-content: space-around; align-items: center; z-index: 100;
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--slate-600); font-size: 0.75rem; }
-        .nav-item-active { color: var(--blue-600); }
-        .nav-icon { font-size: 1.25rem; margin-bottom: 0.25rem; }
-        .screen { display: none; width: 100%; }
-        .active-screen { display: block; }
+        /* Header Style */
+        .header-section {
+            padding: 1.5rem 1rem 1rem 1rem;
+        }
 
-        /* Стили для сообщения об ошибке токена */
-        .token-error { 
-             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-             background-color: var(--tg-bg); color: var(--tg-text); 
-             display: flex; flex-direction: column; align-items: center; justify-content: center;
-             text-align: center; padding: 20px; z-index: 200;
-        }
+        /* Form Styles */
+        input[type="number"], input[type="text"], input[type="datetime-local"] {
+            padding: 0.75rem;
+            border: 1px solid var(--tg-hint);
+            border-radius: var(--radius);
+            background-color: var(--tg-secondary-bg);
+            color: var(--tg-text);
+            font-size: 1rem;
+            box-sizing: border-box; 
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        label {
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+            color: var(--tg-text);
+        }
 
-        /* ========================================================================= */
-        /* АДАПТИРОВАННЫЕ СТИЛИ ДЛЯ АДМИН-ФОРМ */
-        /* ========================================================================= */
-        #admin-match-screen h1 { text-align: left; }
-        #admin-match-screen .card { padding: 1.5rem; } /* Увеличил padding для лучшего вида */
-        #admin-match-screen label { margin-top: 1.25rem; margin-bottom: 0.5rem; font-weight: 500; }
-        #admin-match-screen .admin-button {
-            background-color: var(--green-600); /* Цвет кнопки "Создать Матч" */
-            color: white;
-            padding: 0.75rem 1.25rem;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            width: 100%;
-            margin-top: 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-        #admin-match-screen .admin-button:hover { background-color: #15803d; }
-        
-        .error-message { background-color: var(--red-100); color: var(--red-600); border: 1px solid var(--red-600); padding: 0.75rem; border-radius: var(--radius); margin-top: 1rem; }
-        .success-message { background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; padding: 0.75rem; border-radius: var(--radius); margin-top: 1rem; }
+        /* Buttons and Messages */
+        .primary-button {
+            background-color: var(--primary);
+            color: var(--primary-text);
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: background-color 0.2s;
+        }
+        .primary-button:active {
+            filter: brightness(90%);
+        }
 
-    </style>
+        .message {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .error-message { 
+            background-color: #fef2f2; 
+            color: var(--accent-red); 
+            border: 1px solid #fecaca; 
+        }
+        .success-message { 
+            background-color: #ecfdf5; 
+            color: var(--accent-green); 
+            border: 1px solid #a7f3d0;
+        }
+
+        /* Stat Boxes */
+        .stat-box {
+            background-color: var(--tg-secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--tg-hint);
+        }
+        
+        /* Match Card */
+        .match-card {
+            background-color: var(--tg-secondary-bg);
+            border: 2px solid var(--primary);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .match-card:active {
+            transform: scale(0.98);
+        }
+        .match-result-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .badge-win { background-color: var(--accent-green); color: white; }
+        .badge-loss { background-color: var(--accent-red); color: white; }
+        .badge-draw { background-color: #f59e0b; color: white; }
+
+
+        /* Navigation and Screens */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; right: 0; height: 5rem; 
+            background-color: var(--tg-secondary-bg); 
+            border-top: 1px solid var(--border-color); 
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); 
+            display: flex; justify-content: space-around; 
+            align-items: center; z-index: 100;
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; 
+            text-decoration: none; color: var(--tg-hint); 
+            font-size: 0.75rem; transition: color 0.2s;
+            padding: 0.5rem;
+        }
+        .nav-item-active { 
+            color: var(--primary); 
+            font-weight: 500;
+        }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .screen { display: none; padding: 0 1rem; }
+        .active-screen { display: block; }
+
+        /* Token Error */
+        .token-error { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: var(--tg-bg); color: var(--tg-text); 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; z-index: 200;
+        }
+        .token-error h2 { color: var(--accent-red); }
+
+    </style>
 </head>
 <body>
-    
-    <div id="main-app" class="app-content">
-        
-        <div id="dashboard-screen" class="screen active-screen">
-            <div class="header-bg p-6 pb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <span style="color: white; font-size: 1.25rem;">🏠</span>
-                    <h1>Главная</h1>
-                </div>
-                <p class="text-blue-100">Статистика и результаты для <span id="welcome-user">Пользователя</span></p>
-            </div>
+    
+    <div id="main-app" class="app-content" style="display: none;">
+        
+        <div id="dashboard-screen" class="screen active-screen">
+            <div class="header-section">
+                <h1>Привет, <span id="welcome-user" class="font-medium">Пользователь</span>!</h1>
+                <p class="text-hint mt-1">Обзор вашей игровой статистики и последних матчей.</p>
+            </div>
 
-            <div class="p-4 -mt-4">
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="card p-4" style="border-width: 2px; border-color: var(--blue-100);">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-10 h-10 rounded-full stat-icon-blue flex items-center justify-center">
-                                <span>📈</span>
-                            </div>
-                        </div>
-                        <div class="text-slate-600 mb-1">Владение</div>
-                        <div class="text-blue-900">58%</div>
-                    </div>
-                    <div class="card p-4" style="border-width: 2px; border-color: var(--blue-100);">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-10 h-10 rounded-full stat-icon-red flex items-center justify-center">
-                                <span>⚠️</span>
-                            </div>
-                        </div>
-                        <div class="text-slate-600 mb-1">Потери</div>
-                        <div class="text-blue-900">23</div>
-                    </div>
-                </div>
+            <div class="space-y-4">
+                
+                <h2>Ваши показатели</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="stat-box">
+                        <span class="stat-icon">⚽️</span>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Голы (Сезон)</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-icon">🎯</span>
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Ассисты (Сезон)</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-icon">💪</span>
+                        <div class="stat-value">4.5</div>
+                        <div class="stat-label">Рейтинг (AVG)</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-icon">⏱️</span>
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">Процент матчей</div>
+                    </div>
+                </div>
 
-                <div class="mb-4">
-                    <h2 class="text-blue-900 mb-3">Последний матч</h2>
-                    <div class="card p-4 last-match-card">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <span style="color: var(--blue-600);">📅</span>
-                                <span class="text-slate-700">28 окт 2025</span>
-                            </div>
-                            <div class="badge last-match-badge">Победа</div>
-                        </div>
-                        <div class="flex items-center justify-between mb-3 text-blue-900">
-                            <span>vs ФК Спартак</span>
-                            <span>2:1</span>
-                        </div>
-                        <button onclick="navigate('analytics')" class="last-match-button w-full">
-                            Открыть аналитику
-                        </button>
-                    </div>
-                </div>
+                <h2 class="mt-4">Последний матч</h2>
+                <div class="card match-card" onclick="navigate('analytics')">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-hint">📅 28 окт 2025 | 18:00</span>
+                        <div class="match-result-badge badge-win">Победа 🏆</div>
+                    </div>
+                    <div class="font-medium">vs ФК Спартак</div>
+                    <div class="text-hint">Счет: 2:1</div>
+                </div>
 
-                <div>
-                    <h2 class="text-blue-900 mb-3">Все матчи</h2>
-                    <div class="space-y-3">
-                        <div class="card p-4 border border-slate-200 cursor-pointer hover:border-blue-700 transition-colors" onclick="navigate('analytics')">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-slate-600">21 окт 2025</span>
-                                </div>
-                                <div class="badge badge-draw">Ничья</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <h2 class="mt-4">Все матчи</h2>
+                <div class="space-y-3">
+                    <div class="card match-card" onclick="navigate('analytics')">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-hint">📅 21 окт 2025</span>
+                            <div class="match-result-badge badge-draw">Ничья 🤝</div>
+                        </div>
+                        <div class="font-medium">vs ФК Динамо</div>
+                        <div class="text-hint">Счет: 1:1</div>
+                    </div>
+                    </div>
+            </div>
+        </div>
 
-        <div id="analytics-screen" class="screen">
-            <div class="header-bg p-6 pb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <span style="color: white; font-size: 1.25rem;">📊</span>
-                    <h1>Аналитика матча</h1>
-                </div>
-                <p class="text-blue-100">ФК Спартак • 28 окт 2025</p>
-            </div>
-            <div class="p-4 -mt-4">
-                <div class="card p-4" style="border: 2px solid var(--blue-100);">
-                    <h3 class="text-blue-900 mb-2">Детальная статистика</h3>
-                    <p class="text-slate-600">Здесь будет таблица и граф.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div id="players-screen" class="screen">
-            <div class="header-bg p-6 pb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <span style="color: white; font-size: 1.25rem;">👤</span>
-                    <h1>Статистика игрока</h1>
-                </div>
-                <p class="text-blue-100">Подробный анализ эффективности</p>
-            </div>
-            <div class="p-4 -mt-4">
-                <div class="card p-4" style="border: 2px solid var(--blue-100);">
-                    <h3 class="text-blue-900 mb-2">Иванов Иван</h3>
-                    <p class="text-slate-600">Здесь будет селектор игрока, общая статистика и история матчей.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div id="stat-screen" class="screen">
-            <div class="header-bg p-6 pb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <span style="color: white; font-size: 1.25rem;">✍️</span>
-                    <h1>Ввод статистики</h1>
-                </div>
-                <p class="text-blue-100">Сохранение результатов матча для <span id="stat-user"></span></p>
-            </div>
-            <div class="p-4 -mt-4">
-                <div class="card p-4" style="border: 2px solid var(--blue-100);">
-                    <form id="statForm" class="space-y-3">
-                        
-                        <label for="matchIdInput" class="block font-medium">ID Матча (Тест):</label>
-                        <input type="text" id="matchIdInput" value="7e743209-417c-4824-a316-562a9394628a" class="w-full">
-                        <small class="text-slate-600">В реальном приложении это будет скрытое поле или селектор матча.</small>
-                        
-                        <label for="goals" class="block font-medium">Голы:</label>
-                        <input type="number" id="goals" value="0" min="0" class="w-full">
+        <div id="analytics-screen" class="screen">
+            <div class="header-section">
+                <h1>Аналитика матча</h1>
+                <p class="text-hint mt-1">Детальный разбор выбранного матча.</p>
+            </div>
+            <div class="card">
+                <h2>Матч: ФК Спартак (2:1)</h2>
+                <p class="text-hint">28 октября 2025, 18:00</p>
+                <div class="mt-4">
+                    <p class="font-medium">Обзор:</p>
+                    <ul style="list-style: none; padding: 0;" class="space-y-1 mt-2">
+                        <li>⚽️ Голы команды: 2</li>
+                        <li>🥅 Голы соперника: 1</li>
+                        <li>⏱️ Владение: 58%</li>
+                        <li>🏃‍♂️ Пройдено км (AVG): 10.5</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="players-screen" class="screen">
+            <div class="header-section">
+                <h1>Статистика игроков</h1>
+                <p class="text-hint mt-1">Рейтинги и достижения всех участников.</p>
+            </div>
+            <div class="card">
+                <p class="text-hint">Здесь будет список всех игроков, поиск и детальные карточки.</p>
+                <ul class="space-y-3 mt-4" style="list-style: none; padding: 0;">
+                    <li class="card">
+                        <div class="flex justify-between items-center font-medium">
+                            <span>1. Иванов Иван</span>
+                            <span style="color: var(--primary);">Рейтинг: 4.8</span>
+                        </div>
+                    </li>
+                    <li class="card">
+                        <div class="flex justify-between items-center font-medium">
+                            <span>2. Петров Сергей</span>
+                            <span style="color: var(--accent-green);">Голы: 12</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="stat-screen" class="screen">
+            <div class="header-section">
+                <h1>Ввод статистики</h1>
+                <p class="text-hint mt-1">Отправка личных данных для матча. Игрок: <span id="stat-user" class="font-medium"></span></p>
+            </div>
+            <div class="card">
+                <form id="statForm">
+                    
+                    <label for="matchIdInput">ID Матча (Тест):</label>
+                    <input type="text" id="matchIdInput" value="7e743209-417c-4824-a316-562a9394628a" class="w-full">
+                    <small class="text-hint">В реальном приложении это будет селектор или скрытое поле.</small>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="goals">Голы:</label>
+                            <input type="number" id="goals" value="0" min="0" class="w-full">
+                        </div>
+                        <div>
+                            <label for="assists">Ассисты:</label>
+                            <input type="number" id="assists" value="0" min="0" class="w-full">
+                        </div>
+                        <div>
+                            <label for="passes">Передачи:</label>
+                            <input type="number" id="passes" value="0" min="0" class="w-full">
+                        </div>
+                        <div>
+                            <label for="errors">Потери:</label>
+                            <input type="number" id="errors" value="0" min="0" class="w-full">
+                        </div>
+                    </div>
 
-                        <label for="assists" class="block font-medium">Ассисты:</label>
-                        <input type="number" id="assists" value="0" min="0" class="w-full">
+                    <label for="minutesPlayed">Сыграно минут:</label>
+                    <input type="number" id="minutesPlayed" value="0" min="0" class="w-full">
+                    
+                    <button type="submit" class="primary-button">
+                        Сохранить Статистику
+                    </button>
+                </form>
+                <div id="statMessage" class="message" style="display: none;"></div>
+            </div>
+        </div>
 
-                        <label for="passes" class="block font-medium">Передачи:</label>
-                        <input type="number" id="passes" value="0" min="0" class="w-full">
+        <div id="admin-match-screen" class="screen">
+            <div class="header-section">
+                <h1>Админ: Создание матча</h1>
+                <p class="text-hint mt-1">Только для администраторов. Создайте новое событие.</p>
+            </div>
+            <div class="card">
+                <form id="createMatchForm">
+                    <label for="matchDate">Дата и время матча:</label>
+                    <input type="datetime-local" id="matchDate" required class="w-full">
 
-                        <label for="errors" class="block font-medium">Ошибки:</label>
-                        <input type="number" id="errors" value="0" min="0" class="w-full">
+                    <label for="location">Местоположение:</label>
+                    <input type="text" id="location" placeholder="Например: Поле у школы №5" required class="w-full">
 
-                        <label for="minutesPlayed" class="block font-medium">Сыграно минут:</label>
-                        <input type="number" id="minutesPlayed" value="0" min="0" class="w-full">
-                        
-                        <button type="submit" class="last-match-button w-full mt-4">
-                            Сохранить Статистику
-                        </button>
-                    </form>
-                    <div id="statMessage" class="message text-center mt-3" style="display: none;"></div>
-                </div>
-            </div>
-        </div>
+                    <label for="durationMinutes">Продолжительность (минут, опционально):</label>
+                    <input type="number" id="durationMinutes" placeholder="Например: 90" min="1" class="w-full">
 
-        <div id="admin-match-screen" class="screen">
-            <div class="header-bg p-6 pb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <span style="color: white; font-size: 1.25rem;">⚙️</span>
-                    <h1>Админ: Создание матча</h1>
-                </div>
-                <p class="text-blue-100">Создание нового события матча</p>
-            </div>
-            <div class="p-4 -mt-4">
-                <div class="card" style="border: 2px solid var(--blue-100);">
-                    <form id="createMatchForm">
-                        <label for="matchDate">Дата и время матча:</label>
-                        <input type="datetime-local" id="matchDate" required class="w-full">
-
-                        <label for="location">Местоположение:</label>
-                        <input type="text" id="location" placeholder="Например: Поле у школы №5" required class="w-full">
-
-                        <label for="durationMinutes">Продолжительность (минут, опционально):</label>
-                        <input type="number" id="durationMinutes" placeholder="Например: 90" min="1" class="w-full">
-
-                        <button type="submit" class="admin-button">Создать Матч</button>
-                    </form>
-                    <div id="adminMatchMessage" class="message text-center mt-3" style="display: none;"></div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="bottom-nav">
-            <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item nav-item-active">
-                <span class="nav-icon">🏠</span>
-                <span>Главная</span>
-            </a>
-            <a href="#" onclick="navigate('analytics')" id="nav-analytics" class="nav-item">
-                <span class="nav-icon">📊</span>
-                <span>Аналитика</span>
-            </a>
-            <a href="#" onclick="navigate('stat')" id="nav-stat" class="nav-item">
-                <span class="nav-icon">⭐</span>
-                <span>Ввод</span>
-            </a>
-            <a href="#" onclick="navigate('players')" id="nav-players" class="nav-item">
-                <span class="nav-icon">👤</span>
-                <span>Игроки</span>
-            </a>
-            <a href="#" onclick="navigate('admin-match')" id="nav-admin-match" class="nav-item">
-                <span class="nav-icon">⚙️</span>
-                <span>Админ</span>
-            </a>
-        </div>
-    </div>
-
-    <div id="token-error" class="token-error" style="display: none;">
-        <h2>❌ Ошибка доступа</h2>
-        <p>Не удалось найти действительный токен авторизации.</p>
-        <p>Пожалуйста, перезапустите приложение через Telegram.</p>
-    </div>
-
-    <script>
-        // =========================================================================
-        // ИСПРАВЛЕННЫЕ АДРЕСА
-        // =========================================================================
-        // Адрес для ввода статистики. Оставлен, как в вашем последнем рабочем варианте.
-        const STAT_SUBMIT_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev/api/stats/submit'; 
-        
-        // АДРЕС ДЛЯ СОЗДАНИЯ МАТЧА: ИСПРАВЛЕНО на публичный URL ngrok.
-        const MATCH_CREATE_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev/api/matches'; 
-
-        // Функция для переключения содержимого
-        function navigate(page) {
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-item-active'));
-            
-            const screenElement = document.getElementById(`${page}-screen`);
-            const navElement = document.getElementById(`nav-${page}`);
-            
-            if (screenElement) {
-                screenElement.classList.add('active-screen');
-            }
-            if (navElement) {
-                navElement.classList.add('nav-item-active');
-            }
-            
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-            }
-        }
-        
-        // Главная функция запуска приложения
-        function initApp() {
-            const token = localStorage.getItem('jwt_token');
-            const userName = localStorage.getItem('user_name') || 'Пользователь';
-            
-            if (!token) {
-                document.getElementById('token-error').style.display = 'flex';
-                localStorage.clear(); 
-                return;
-            }
-
-            document.getElementById('welcome-user').textContent = userName;
-            
-            // NEW: Заполняем имя пользователя на экране статистики
-            const statUserElement = document.getElementById('stat-user');
-            if (statUserElement) {
-                statUserElement.textContent = userName; 
-            }
-
-            document.getElementById('main-app').style.display = 'block';
-
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-            }
-            
-            navigate('dashboard');
-        }
-
-        // =========================================================================
-        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СТАТИСТИКИ (EXISTING)
-        // =========================================================================
-        document.getElementById('statForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageBox = document.getElementById('statMessage');
-            messageBox.style.display = 'none';
-            messageBox.className = 'message';
-
-            if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
-                 messageBox.textContent = '❌ Ошибка: Telegram Web App initData не доступна.';
-                 messageBox.style.backgroundColor = 'var(--red-100)';
-                 messageBox.style.color = 'var(--red-600)';
-                 messageBox.style.display = 'block';
-                 return;
-            }
-            
-            const initData = Telegram.WebApp.initData; 
-
-            // Сбор данных из формы
-            const payload = {
-                initData: initData,
-                matchId: document.getElementById('matchIdInput').value.trim(), 
-                goals: parseInt(document.getElementById('goals').value) || 0,
-                assists: parseInt(document.getElementById('assists').value) || 0,
-                passes: parseInt(document.getElementById('passes').value) || 0,
-                errors: parseInt(document.getElementById('errors').value) || 0,
-                minutesPlayed: parseInt(document.getElementById('minutesPlayed').value) || 0,
-            };
-            
-            // Базовая валидация (для примера)
-            if (!payload.matchId || payload.matchId.length < 5) {
-                 messageBox.textContent = '❌ Ошибка: ID матча не указан.';
-                 messageBox.style.backgroundColor = 'var(--red-100)';
-                 messageBox.style.color = 'var(--red-600)';
-                 messageBox.style.display = 'block';
-                 return;
-            }
+                    <button type="submit" class="primary-button" style="background-color: var(--accent-green);">
+                        Создать Матч
+                    </button>
+                </form>
+                <div id="adminMatchMessage" class="message" style="display: none;"></div>
+            </div>
+        </div>
 
 
-            try {
-                const response = await fetch(STAT_SUBMIT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+        <div class="bottom-nav">
+            <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item nav-item-active">
+                <span class="nav-icon">🏠</span>
+                <span>Главная</span>
+            </a>
+            <a href="#" onclick="navigate('analytics')" id="nav-analytics" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span>Аналитика</span>
+            </a>
+            <a href="#" onclick="navigate('stat')" id="nav-stat" class="nav-item">
+                <span class="nav-icon">📝</span>
+                <span>Ввод</span>
+            </a>
+            <a href="#" onclick="navigate('players')" id="nav-players" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span>Игроки</span>
+            </a>
+            <a href="#" onclick="navigate('admin-match')" id="nav-admin-match" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Админ</span>
+            </a>
+        </div>
+    </div>
 
-                if (response.ok) {
-                    messageBox.textContent = '✅ Статистика успешно сохранена!';
-                    messageBox.style.backgroundColor = 'var(--green-600)';
-                    messageBox.style.color = 'white';
-                    document.getElementById('statForm').reset();
-                } else {
-                    const errorText = await response.text();
-                    messageBox.textContent = `❌ Ошибка сохранения: ${errorText || response.statusText}`;
-                    messageBox.style.backgroundColor = 'var(--red-100)';
-                    messageBox.style.color = 'var(--red-600)';
-                }
-            } catch (error) {
-                console.error("Fetch error:", error);
-                messageBox.textContent = '❌ Ошибка сети: Нет связи с сервером.';
-                messageBox.style.backgroundColor = 'var(--red-100)';
-                messageBox.style.color = 'var(--red-600)';
-            }
-            messageBox.style.display = 'block';
-        });
+    <div id="token-error" class="token-error">
+        <h2>❌ Ошибка доступа</h2>
+        <p class="text-hint">Не удалось найти действительный токен авторизации.</p>
+        <p class="text-hint">Пожалуйста, перезапустите приложение через Telegram.</p>
+    </div>
 
-        // =========================================================================
-        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СОЗДАНИЯ МАТЧА (NEW)
-        // =========================================================================
-        document.getElementById('createMatchForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+    <script>
+        // =========================================================================
+        // КОНСТАНТЫ С NGROK АДРЕСАМИ
+        // =========================================================================
+        // АДРЕСА ДОЛЖНЫ БЫТЬ ОБНОВЛЕНЫ НА ВАШ АКТУАЛЬНЫЙ NGROK URL
+        const BASE_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev'; 
+        const STAT_SUBMIT_URL = `${BASE_URL}/api/stats/submit`; 
+        const MATCH_CREATE_URL = `${BASE_URL}/api/matches`; 
 
-            const messageDiv = document.getElementById('adminMatchMessage');
-            messageDiv.textContent = '';
-            messageDiv.style.display = 'none';
-            
-            // 1. Получаем токен из Local Storage (используем jwt_token для консистентности)
-            const token = localStorage.getItem('jwt_token'); 
-            if (!token) {
-                messageDiv.textContent = '❌ Ошибка: Вы не авторизованы или ваш токен истек. Войдите как администратор.';
-                messageDiv.className = 'error-message'; // Используем адаптированный класс
-                messageDiv.style.display = 'block';
-                return;
-            }
+        // =========================================================================
+        // ЛОГИКА НАВИГАЦИИ И ИНИЦИАЛИЗАЦИИ
+        // =========================================================================
+        function navigate(page) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-item-active'));
+            
+            const screenElement = document.getElementById(`${page}-screen`);
+            const navElement = document.getElementById(`nav-${page}`);
+            
+            if (screenElement) {
+                screenElement.classList.add('active-screen');
+                // Прокрутка вверх при переключении экрана
+                window.scrollTo(0, 0); 
+            }
+            if (navElement) {
+                navElement.classList.add('nav-item-active');
+            }
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+        }
+        
+        function initApp() {
+            const token = localStorage.getItem('jwt_token');
+            const userName = localStorage.getItem('user_name') || 'Пользователь';
+            
+            if (!token) {
+                document.getElementById('token-error').style.display = 'flex';
+                localStorage.clear(); 
+                return;
+            }
 
-            // 2. Собираем данные формы
-            const matchDate = document.getElementById('matchDate').value;
-            const location = document.getElementById('location').value;
-            const durationMinutes = document.getElementById('durationMinutes').value;
+            document.getElementById('welcome-user').textContent = userName;
+            
+            const statUserElement = document.getElementById('stat-user');
+            if (statUserElement) {
+                statUserElement.textContent = userName; 
+            }
 
-            // Формируем тело запроса
-            const requestBody = {
-                matchDate: matchDate,
-                location: location,
-                // durationMinutes может быть null, если поле пустое
-                durationMinutes: durationMinutes ? parseInt(durationMinutes, 10) : null 
-            };
+            document.getElementById('main-app').style.display = 'block';
 
-            try {
-                const response = await fetch(MATCH_CREATE_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // 3. Отправляем JWT токен
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(requestBody)
-                });
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+            
+            navigate('dashboard');
+        }
 
-                const textResponse = await response.text();
+        // =========================================================================
+        // ЛОГИКА ОТПРАВКИ ФОРМ (РАБОЧАЯ)
+        // =========================================================================
+        
+        // 1. Форма отправки статистики
+        document.getElementById('statForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageBox = document.getElementById('statMessage');
+            messageBox.style.display = 'none';
+            messageBox.className = 'message';
 
-                if (response.ok) {
-                    // Успешный ответ (HTTP 201 Created)
-                    messageDiv.textContent = `✅ Успех! ${textResponse}`;
-                    messageDiv.className = 'success-message';
-                    // Очистка формы после успеха
-                    document.getElementById('createMatchForm').reset();
-                } else if (response.status === 403) {
-                    // Ошибка 403 (Запрещено - не админ)
-                    messageDiv.textContent = `❌ Ошибка: У вас нет прав администратора для создания матча.`;
-                    messageDiv.className = 'error-message';
-                } else {
-                    // Другие ошибки (например, 400 Bad Request из-за валидации)
-                    messageDiv.textContent = `❌ Ошибка сервера (${response.status}): ${textResponse}`;
-                    messageDiv.className = 'error-message';
-                }
+            if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
+                 messageBox.textContent = '❌ Ошибка: Telegram Web App initData не доступна.';
+                 messageBox.className = 'message error-message';
+                 messageBox.style.display = 'block';
+                 return;
+            }
+            
+            const initData = Telegram.WebApp.initData; 
 
-            } catch (error) {
-                console.error('Network or CORS error:', error);
-                messageDiv.textContent = '❌ Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
-                messageDiv.className = 'error-message';
-            }
-            messageDiv.style.display = 'block';
-        });
+            const payload = {
+                initData: initData,
+                matchId: document.getElementById('matchIdInput').value.trim(), 
+                goals: parseInt(document.getElementById('goals').value) || 0,
+                assists: parseInt(document.getElementById('assists').value) || 0,
+                passes: parseInt(document.getElementById('passes').value) || 0,
+                errors: parseInt(document.getElementById('errors').value) || 0,
+                minutesPlayed: parseInt(document.getElementById('minutesPlayed').value) || 0,
+            };
+            
+            if (!payload.matchId || payload.matchId.length < 5) {
+                 messageBox.textContent = '❌ Ошибка: ID матча не указан.';
+                 messageBox.className = 'message error-message';
+                 messageBox.style.display = 'block';
+                 return;
+            }
 
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+            try {
+                const response = await fetch(STAT_SUBMIT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    messageBox.textContent = '✅ Статистика успешно сохранена!';
+                    messageBox.className = 'message success-message';
+                    document.getElementById('statForm').reset();
+                } else {
+                    const errorText = await response.text();
+                    messageBox.textContent = `❌ Ошибка сохранения: ${errorText || response.statusText}`;
+                    messageBox.className = 'message error-message';
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                messageBox.textContent = '❌ Ошибка сети: Нет связи с сервером.';
+                messageBox.className = 'message error-message';
+            }
+            messageBox.style.display = 'block';
+        });
+
+        // 2. Форма создания матча (Admin)
+        document.getElementById('createMatchForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const messageDiv = document.getElementById('adminMatchMessage');
+            messageDiv.textContent = '';
+            messageDiv.style.display = 'none';
+            
+            const token = localStorage.getItem('jwt_token'); 
+            if (!token) {
+                messageDiv.textContent = '❌ Ошибка: Вы не авторизованы или ваш токен истек. Войдите как администратор.';
+                messageDiv.className = 'message error-message';
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            const matchDate = document.getElementById('matchDate').value;
+            const location = document.getElementById('location').value;
+            const durationMinutes = document.getElementById('durationMinutes').value;
+
+            const requestBody = {
+                matchDate: matchDate,
+                location: location,
+                durationMinutes: durationMinutes ? parseInt(durationMinutes, 10) : null 
+            };
+
+            try {
+                const response = await fetch(MATCH_CREATE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const textResponse = await response.text();
+
+                if (response.ok) {
+                    messageDiv.textContent = `✅ Успех! Матч создан. ID: ${textResponse}`;
+                    messageDiv.className = 'message success-message';
+                    document.getElementById('createMatchForm').reset();
+                } else if (response.status === 403) {
+                    messageDiv.textContent = `❌ Ошибка: У вас нет прав администратора для создания матча.`;
+                    messageDiv.className = 'message error-message';
+                } else {
+                    messageDiv.textContent = `❌ Ошибка сервера (${response.status}): ${textResponse}`;
+                    messageDiv.className = 'message error-message';
+                }
+
+            } catch (error) {
+                console.error('Network or CORS error:', error);
+                messageDiv.textContent = '❌ Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
+                messageDiv.className = 'message error-message';
+            }
+            messageDiv.style.display = 'block';
+        });
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
