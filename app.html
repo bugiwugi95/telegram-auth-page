@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* ========================================================================= */
-        /* CSS Стили для UI (ВЗЯТЫ ИЗ ВАШЕГО ИСХОДНОГО ФАЙЛА) */
+        /* CSS Стили для UI (ОСНОВНЫЕ) */
         /* ========================================================================= */
         :root {
             --tg-bg: var(--tg-theme-bg-color, #f0f4f7);
@@ -59,14 +59,15 @@
         .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .w-full { width: 100%; }
         
-        /* Form Styles (Добавлены для новой формы) */
-        input[type="number"], input[type="text"] {
+        /* Form Styles */
+        input[type="number"], input[type="text"], input[type="datetime-local"] {
             padding: 0.75rem;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             background-color: var(--tg-secondary-bg);
             color: var(--tg-text);
             font-size: 1rem;
+            box-sizing: border-box; /* Важно для full-width input */
         }
         label {
             display: block;
@@ -91,7 +92,11 @@
         .rounded-full { border-radius: 9999px; }
         .last-match-card { background-color: var(--blue-50); border-color: var(--blue-100); border-width: 2px; }
         .last-match-badge { background-color: var(--green-600); color: var(--background); }
-        .last-match-button { background-color: var(--blue-600); color: var(--background); height: 3rem; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0 1rem; border-radius: var(--radius); font-weight: 500; border: none; cursor: pointer;}
+        .last-match-button { 
+            background-color: var(--blue-600); color: var(--background); height: 3rem; text-decoration: none; 
+            display: flex; align-items: center; justify-content: center; padding: 0 1rem; 
+            border-radius: var(--radius); font-weight: 500; border: none; cursor: pointer;
+        }
         .badge-draw { background-color: #fef9c3; color: #a16207; }
 
         /* Навигация и Экраны */
@@ -114,6 +119,30 @@
              display: flex; flex-direction: column; align-items: center; justify-content: center;
              text-align: center; padding: 20px; z-index: 200;
         }
+
+        /* ========================================================================= */
+        /* АДАПТИРОВАННЫЕ СТИЛИ ДЛЯ АДМИН-ФОРМЫ */
+        /* ========================================================================= */
+        #admin-match-screen h1 { text-align: left; }
+        #admin-match-screen .card { padding: 1.5rem; } /* Увеличил padding для лучшего вида */
+        #admin-match-screen label { margin-top: 1.25rem; margin-bottom: 0.5rem; font-weight: 500; }
+        #admin-match-screen .admin-button {
+            background-color: var(--green-600); /* Цвет кнопки "Создать Матч" */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        #admin-match-screen .admin-button:hover { background-color: #15803d; }
+        
+        .error-message { background-color: var(--red-100); color: var(--red-600); border: 1px solid var(--red-600); padding: 0.75rem; border-radius: var(--radius); margin-top: 1rem; }
+        .success-message { background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; padding: 0.75rem; border-radius: var(--radius); margin-top: 1rem; }
+
     </style>
 </head>
 <body>
@@ -259,6 +288,34 @@
             </div>
         </div>
 
+        <div id="admin-match-screen" class="screen">
+            <div class="header-bg p-6 pb-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <span style="color: white; font-size: 1.25rem;">⚙️</span>
+                    <h1>Админ: Создание матча</h1>
+                </div>
+                <p class="text-blue-100">Создание нового события матча</p>
+            </div>
+            <div class="p-4 -mt-4">
+                <div class="card" style="border: 2px solid var(--blue-100);">
+                    <form id="createMatchForm">
+                        <label for="matchDate">Дата и время матча:</label>
+                        <input type="datetime-local" id="matchDate" required class="w-full">
+
+                        <label for="location">Местоположение:</label>
+                        <input type="text" id="location" placeholder="Например: Поле у школы №5" required class="w-full">
+
+                        <label for="durationMinutes">Продолжительность (минут, опционально):</label>
+                        <input type="number" id="durationMinutes" placeholder="Например: 90" min="1" class="w-full">
+
+                        <button type="submit" class="admin-button">Создать Матч</button>
+                    </form>
+                    <div id="adminMatchMessage" class="message text-center mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+
         <div class="bottom-nav">
             <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item nav-item-active">
                 <span class="nav-icon">🏠</span>
@@ -276,6 +333,10 @@
                 <span class="nav-icon">👤</span>
                 <span>Игроки</span>
             </a>
+            <a href="#" onclick="navigate('admin-match')" id="nav-admin-match" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Админ</span>
+            </a>
         </div>
     </div>
 
@@ -288,6 +349,8 @@
     <script>
         // !!! ОБЯЗАТЕЛЬНО ОБНОВИТЕ ЭТОТ АДРЕС НА ВАШ АКТУАЛЬНЫЙ ТУННЕЛЬ !!!
         const STAT_SUBMIT_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev/api/stats/submit'; // Пример: замените на ваш адрес
+        // !!! НОВЫЙ АДРЕС ДЛЯ СОЗДАНИЯ МАТЧА - ОБНОВИТЕ !!!
+        const MATCH_CREATE_URL = 'http://localhost:8080/api/matches'; // <-- ИЗМЕНИТЕ на ваш актуальный URL
 
         // Функция для переключения содержимого
         function navigate(page) {
@@ -340,7 +403,7 @@
         }
 
         // =========================================================================
-        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СТАТИСТИКИ
+        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СТАТИСТИКИ (EXISTING)
         // =========================================================================
         document.getElementById('statForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -406,6 +469,75 @@
                 messageBox.style.color = 'var(--red-600)';
             }
             messageBox.style.display = 'block';
+        });
+
+        // =========================================================================
+        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СОЗДАНИЯ МАТЧА (NEW)
+        // =========================================================================
+        document.getElementById('createMatchForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const messageDiv = document.getElementById('adminMatchMessage');
+            messageDiv.textContent = '';
+            messageDiv.style.display = 'none';
+            
+            // 1. Получаем токен из Local Storage (используем jwt_token для консистентности)
+            const token = localStorage.getItem('jwt_token'); 
+            if (!token) {
+                messageDiv.textContent = '❌ Ошибка: Вы не авторизованы или ваш токен истек. Войдите как администратор.';
+                messageDiv.className = 'error-message'; // Используем адаптированный класс
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // 2. Собираем данные формы
+            const matchDate = document.getElementById('matchDate').value;
+            const location = document.getElementById('location').value;
+            const durationMinutes = document.getElementById('durationMinutes').value;
+
+            // Формируем тело запроса
+            const requestBody = {
+                matchDate: matchDate,
+                location: location,
+                // durationMinutes может быть null, если поле пустое
+                durationMinutes: durationMinutes ? parseInt(durationMinutes, 10) : null 
+            };
+
+            try {
+                const response = await fetch(MATCH_CREATE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 3. Отправляем JWT токен
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const textResponse = await response.text();
+
+                if (response.ok) {
+                    // Успешный ответ (HTTP 201 Created)
+                    messageDiv.textContent = `✅ Успех! ${textResponse}`;
+                    messageDiv.className = 'success-message';
+                    // Очистка формы после успеха
+                    document.getElementById('createMatchForm').reset();
+                } else if (response.status === 403) {
+                    // Ошибка 403 (Запрещено - не админ)
+                    messageDiv.textContent = `❌ Ошибка: У вас нет прав администратора для создания матча.`;
+                    messageDiv.className = 'error-message';
+                } else {
+                    // Другие ошибки (например, 400 Bad Request из-за валидации)
+                    messageDiv.textContent = `❌ Ошибка сервера (${response.status}): ${textResponse}`;
+                    messageDiv.className = 'error-message';
+                }
+
+            } catch (error) {
+                console.error('Network or CORS error:', error);
+                messageDiv.textContent = '❌ Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
+                messageDiv.className = 'error-message';
+            }
+            messageDiv.style.display = 'block';
         });
 
         document.addEventListener('DOMContentLoaded', initApp);
