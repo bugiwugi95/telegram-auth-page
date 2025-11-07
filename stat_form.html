@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ввод Статистики Матча</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f0f0f0; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="number"] { width: calc(100% - 20px); padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .message { margin-top: 15px; text-align: center; padding: 10px; border-radius: 4px; display: none; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Ввод Статистики Игрока</h1>
+    <div id="loading" style="text-align: center; display: none;">Загрузка...</div>
+    <form id="statForm" style="display: none;">
+        <p>Игрок: <strong id="usernameDisplay"></strong></p>
+
+        <label for="goals">Голы:</label>
+        <input type="number" id="goals" value="0" min="0">
+
+        <label for="assists">Ассисты:</label>
+        <input type="number" id="assists" value="0" min="0">
+
+        <label for="passes">Передачи:</label>
+        <input type="number" id="passes" value="0" min="0">
+
+        <label for="errors">Ошибки:</label>
+        <input type="number" id="errors" value="0" min="0">
+
+        <label for="minutesPlayed">Сыграно минут:</label>
+        <input type="number" id="minutesPlayed" value="0" min="0">
+        
+        <input type="hidden" id="playerId">
+        <input type="hidden" id="matchId" value="7e743209-417c-4824-a316-562a9394628a"> <button type="submit">Сохранить Статистику</button>
+    </form>
+
+    <div id="messageBox" class="message"></div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    // --- НАСТРОЙКИ ---
+    // !!! НОВЫЙ АДРЕС ВАШЕГО ТУННЕЛЯ !!!
+    const NEW_TUNNEL_URL = 'https://random-word-abcd.ngrok-free.dev'; 
+    const STAT_SUBMIT_URL = NEW_TUNNEL_URL + '/api/stats/submit'; // <-- НОВЫЙ ЭНДПОИНТ
+
+    // --- ЛОГИКА ФОРМЫ ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const initData = Telegram.WebApp.initData;
+        const initDataUnsafe = Telegram.WebApp.initDataUnsafe;
+
+        const form = document.getElementById('statForm');
+        const messageBox = document.getElementById('messageBox');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const loading = document.getElementById('loading');
+        
+        // ВАЖНО: Присваиваем имя пользователя
+        if (initDataUnsafe.user && initDataUnsafe.user.username) {
+            usernameDisplay.textContent = initDataUnsafe.user.username;
+        } else {
+            usernameDisplay.textContent = 'Неизвестный игрок';
+        }
+        
+        loading.style.display = 'none';
+        form.style.display = 'block';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            messageBox.style.display = 'none';
+
+            // 1. Сбор данных из формы
+            const payload = {
+                initData: initData, // Отправляем для авторизации
+                playerId: document.getElementById('playerId').value, // Временно не используется в бэкенде, но лучше отправить
+                matchId: document.getElementById('matchId').value,
+                goals: parseInt(document.getElementById('goals').value) || 0,
+                assists: parseInt(document.getElementById('assists').value) || 0,
+                passes: parseInt(document.getElementById('passes').value) || 0,
+                errors: parseInt(document.getElementById('errors').value) || 0,
+                minutesPlayed: parseInt(document.getElementById('minutesPlayed').value) || 0,
+            };
+
+            try {
+                const response = await fetch(STAT_SUBMIT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    messageBox.textContent = 'Статистика успешно сохранена!';
+                    messageBox.className = 'message success';
+                    form.reset(); // Очищаем форму
+                    Telegram.WebApp.close(); // Можно закрыть Web App после успеха
+                } else {
+                    const errorData = await response.json();
+                    messageBox.textContent = `Ошибка сохранения: ${errorData.message || response.statusText}`;
+                    messageBox.className = 'message error';
+                }
+            } catch (error) {
+                messageBox.textContent = 'Ошибка сети или сервера: ' + error.message;
+                messageBox.className = 'message error';
+            }
+            messageBox.style.display = 'block';
+        });
+    });
+</script>
+
+</body>
+</html>
