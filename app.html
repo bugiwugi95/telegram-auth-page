@@ -58,6 +58,27 @@
         .grid { display: grid; }
         .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .w-full { width: 100%; }
+        
+        /* Form Styles (Добавлены для новой формы) */
+        input[type="number"], input[type="text"] {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: var(--tg-secondary-bg);
+            color: var(--tg-text);
+            font-size: 1rem;
+        }
+        label {
+            display: block;
+            margin-top: 0.75rem;
+            font-weight: var(--font-weight-medium);
+            color: var(--tg-text);
+        }
+        .message {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+        }
 
         /* Components */
         .header-bg { background-color: var(--blue-600); color: var(--background); }
@@ -70,7 +91,7 @@
         .rounded-full { border-radius: 9999px; }
         .last-match-card { background-color: var(--blue-50); border-color: var(--blue-100); border-width: 2px; }
         .last-match-badge { background-color: var(--green-600); color: var(--background); }
-        .last-match-button { background-color: var(--blue-600); color: var(--background); height: 3rem; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0 1rem; border-radius: var(--radius); font-weight: 500; }
+        .last-match-button { background-color: var(--blue-600); color: var(--background); height: 3rem; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0 1rem; border-radius: var(--radius); font-weight: 500; border: none; cursor: pointer;}
         .badge-draw { background-color: #fef9c3; color: #a16207; }
 
         /* Навигация и Экраны */
@@ -80,7 +101,7 @@
              box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); display: flex; 
              justify-content: space-around; align-items: center; z-index: 100;
         }
-        .nav-item { /* ... стили ... */ }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--slate-600); font-size: 0.75rem; }
         .nav-item-active { color: var(--blue-600); }
         .nav-icon { font-size: 1.25rem; margin-bottom: 0.25rem; }
         .screen { display: none; width: 100%; }
@@ -181,7 +202,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div id="players-screen" class="screen">
             <div class="header-bg p-6 pb-8">
                 <div class="flex items-center gap-3 mb-2">
@@ -198,6 +219,46 @@
             </div>
         </div>
         
+        <div id="stat-screen" class="screen">
+            <div class="header-bg p-6 pb-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <span style="color: white; font-size: 1.25rem;">✍️</span>
+                    <h1>Ввод статистики</h1>
+                </div>
+                <p class="text-blue-100">Сохранение результатов матча для <span id="stat-user"></span></p>
+            </div>
+            <div class="p-4 -mt-4">
+                <div class="card p-4" style="border: 2px solid var(--blue-100);">
+                    <form id="statForm" class="space-y-3">
+                        
+                        <label for="matchIdInput" class="block font-medium">ID Матча (Тест):</label>
+                        <input type="text" id="matchIdInput" value="7e743209-417c-4824-a316-562a9394628a" class="w-full">
+                        <small class="text-slate-600">В реальном приложении это будет скрытое поле или селектор матча.</small>
+                        
+                        <label for="goals" class="block font-medium">Голы:</label>
+                        <input type="number" id="goals" value="0" min="0" class="w-full">
+
+                        <label for="assists" class="block font-medium">Ассисты:</label>
+                        <input type="number" id="assists" value="0" min="0" class="w-full">
+
+                        <label for="passes" class="block font-medium">Передачи:</label>
+                        <input type="number" id="passes" value="0" min="0" class="w-full">
+
+                        <label for="errors" class="block font-medium">Ошибки:</label>
+                        <input type="number" id="errors" value="0" min="0" class="w-full">
+
+                        <label for="minutesPlayed" class="block font-medium">Сыграно минут:</label>
+                        <input type="number" id="minutesPlayed" value="0" min="0" class="w-full">
+                        
+                        <button type="submit" class="last-match-button w-full mt-4">
+                            Сохранить Статистику
+                        </button>
+                    </form>
+                    <div id="statMessage" class="message text-center mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="bottom-nav">
             <a href="#" onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item nav-item-active">
                 <span class="nav-icon">🏠</span>
@@ -206,6 +267,10 @@
             <a href="#" onclick="navigate('analytics')" id="nav-analytics" class="nav-item">
                 <span class="nav-icon">📊</span>
                 <span>Аналитика</span>
+            </a>
+            <a href="#" onclick="navigate('stat')" id="nav-stat" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                <span>Ввод</span>
             </a>
             <a href="#" onclick="navigate('players')" id="nav-players" class="nav-item">
                 <span class="nav-icon">👤</span>
@@ -221,6 +286,9 @@
     </div>
 
     <script>
+        // !!! ОБЯЗАТЕЛЬНО ОБНОВИТЕ ЭТОТ АДРЕС НА ВАШ АКТУАЛЬНЫЙ ТУННЕЛЬ !!!
+        const STAT_SUBMIT_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev/api/stats/submit'; // Пример: замените на ваш адрес
+
         // Функция для переключения содержимого
         function navigate(page) {
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
@@ -248,15 +316,19 @@
             const userName = localStorage.getItem('user_name') || 'Пользователь';
             
             if (!token) {
-                // Если токена нет, показываем ошибку
                 document.getElementById('token-error').style.display = 'flex';
-                // Очищаем localStorage на всякий случай
                 localStorage.clear(); 
                 return;
             }
 
-            // Если токен есть, показываем UI
             document.getElementById('welcome-user').textContent = userName;
+            
+            // NEW: Заполняем имя пользователя на экране статистики
+            const statUserElement = document.getElementById('stat-user');
+            if (statUserElement) {
+                statUserElement.textContent = userName; 
+            }
+
             document.getElementById('main-app').style.display = 'block';
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -264,9 +336,77 @@
                 window.Telegram.WebApp.expand();
             }
             
-            // Запускаем на Дашборде
             navigate('dashboard');
         }
+
+        // =========================================================================
+        // ЛОГИКА ДЛЯ ОТПРАВКИ ФОРМЫ СТАТИСТИКИ
+        // =========================================================================
+        document.getElementById('statForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageBox = document.getElementById('statMessage');
+            messageBox.style.display = 'none';
+            messageBox.className = 'message';
+
+            if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
+                 messageBox.textContent = '❌ Ошибка: Telegram Web App initData не доступна.';
+                 messageBox.style.backgroundColor = 'var(--red-100)';
+                 messageBox.style.color = 'var(--red-600)';
+                 messageBox.style.display = 'block';
+                 return;
+            }
+            
+            const initData = Telegram.WebApp.initData; 
+
+            // Сбор данных из формы
+            const payload = {
+                initData: initData,
+                matchId: document.getElementById('matchIdInput').value.trim(), 
+                goals: parseInt(document.getElementById('goals').value) || 0,
+                assists: parseInt(document.getElementById('assists').value) || 0,
+                passes: parseInt(document.getElementById('passes').value) || 0,
+                errors: parseInt(document.getElementById('errors').value) || 0,
+                minutesPlayed: parseInt(document.getElementById('minutesPlayed').value) || 0,
+            };
+            
+            // Базовая валидация (для примера)
+            if (!payload.matchId || payload.matchId.length < 5) {
+                 messageBox.textContent = '❌ Ошибка: ID матча не указан.';
+                 messageBox.style.backgroundColor = 'var(--red-100)';
+                 messageBox.style.color = 'var(--red-600)';
+                 messageBox.style.display = 'block';
+                 return;
+            }
+
+
+            try {
+                const response = await fetch(STAT_SUBMIT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    messageBox.textContent = '✅ Статистика успешно сохранена!';
+                    messageBox.style.backgroundColor = 'var(--green-600)';
+                    messageBox.style.color = 'white';
+                    document.getElementById('statForm').reset();
+                } else {
+                    const errorText = await response.text();
+                    messageBox.textContent = `❌ Ошибка сохранения: ${errorText || response.statusText}`;
+                    messageBox.style.backgroundColor = 'var(--red-100)';
+                    messageBox.style.color = 'var(--red-600)';
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                messageBox.textContent = '❌ Ошибка сети: Нет связи с сервером.';
+                messageBox.style.backgroundColor = 'var(--red-100)';
+                messageBox.style.color = 'var(--red-600)';
+            }
+            messageBox.style.display = 'block';
+        });
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
