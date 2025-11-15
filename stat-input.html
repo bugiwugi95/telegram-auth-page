@@ -1,0 +1,42 @@
+<div class="header-section">
+    <h1>Ввод статистики</h1>
+    <p class="text-hint mt-1">Отправка личных данных для матча. Игрок: <span id="stat-user" class="font-medium"></span></p>
+</div>
+<div class="card">
+    <form id="statForm">
+        
+        <label for="matchIdInput">ID Матча (Тест):</label>
+        <input type="text" id="matchIdInput" value="7e743209-417c-4824-a316-562a9394628a" class="w-full">
+        <small class="text-hint">В реальном приложении это будет селектор или скрытое поле.</small>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label for="goals">Голы:</label>
+                <input type="number" id="goals" value="0" min="0" class="w-full">
+            </div>
+            <div>
+                <label for="assists">Ассисты:</label>
+                <input type="number" id="assists" value="0" min="0" class="w-full">
+            </div>
+            <div>
+                <label for="passes">Передачи:</label>
+                <input type="number" id="passes" value="0" min="0" class="w-full">
+            </div>
+            <div>
+                <label for="errors">Потери:</label>
+                <input type="number" id="errors" value="0" min="0" class="w-full">
+            </div>
+        </div>
+
+        <label for="minutesPlayed">Сыграно минут:</label>
+        <input type="number" id="minutesPlayed" value="0" min="0" class="w-full">
+        
+        <button type="submit" class="primary-button">
+            Сохранить Статистику
+        </button>
+    </form>
+    <div id="statMessage" class="message" style="display: none;"></div>
+</div>
+
+<div id="temp-data-logic" style="display: none;">
+    </div>
