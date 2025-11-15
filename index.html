@@ -12,6 +12,12 @@
 </head>
 <body>
     
+    <div id="token-error" class="token-error">
+        <h2>❌ Ошибка доступа</h2>
+        <p class="text-hint">Не удалось найти действительный токен авторизации.</p>
+        <p class="text-hint">Пожалуйста, перезапустите приложение через Telegram.</p>
+    </div>
+
     <div id="main-app" class="app-content" style="display: none;">
         
         <div id="dashboard-screen" class="screen active-screen"></div>
@@ -45,16 +51,11 @@
         </div>
     </div>
 
-    <div id="token-error" class="token-error">
-        <h2>❌ Ошибка доступа</h2>
-        <p class="text-hint">Не удалось найти действительный токен авторизации.</p>
-        <p class="text-hint">Пожалуйста, перезапустите приложение через Telegram.</p>
-    </div>
 
     <script>
         // =========================================================================
         // КОНСТАНТЫ И АДРЕСА
-        // !!! ОБНОВЛЁННЫЙ BASE_URL: https://definable-outspokenly-janyce.ngrok-free.dev !!!
+        // !!! АДРЕС BASE_URL взят из вашего последнего рабочего ngrok !!!
         // =========================================================================
         const BASE_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev'; 
         const STAT_SUBMIT_URL = `${BASE_URL}/api/stats/submit`; 
@@ -107,6 +108,26 @@
                 } else if (page === 'admin-match') {
                     setupAdminFormHandler();
                 }
+                
+                // Специфическое обновление для Dashboard (поля приветствия)
+                if (page === 'dashboard' || page === 'stat') {
+                    // Используем данные Telegram, если они есть
+                    const userName = (window.Telegram && window.Telegram.WebApp.initDataUnsafe.user)
+                        ? (Telegram.WebApp.initDataUnsafe.user.username || Telegram.WebApp.initDataUnsafe.user.first_name)
+                        : 'Пользователь';
+                    
+                    // Обновляем приветствие на главной
+                    const welcomeUserElement = document.getElementById('welcome-user');
+                    if (welcomeUserElement) {
+                        welcomeUserElement.textContent = userName;
+                    }
+                    
+                    // Обновляем имя пользователя для экрана ввода статистики
+                    const statUserElement = document.getElementById('stat-user');
+                    if (statUserElement) {
+                        statUserElement.textContent = userName; 
+                    }
+                }
             }
             if (navElement) {
                 navElement.classList.add('nav-item-active');
@@ -122,22 +143,13 @@
             // Проверка, есть ли данные Telegram для запуска.
             if (!window.Telegram || !window.Telegram.WebApp || !Telegram.WebApp.initData) {
                 document.getElementById('token-error').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
                 localStorage.clear(); 
                 return;
             }
 
-            const userName = Telegram.WebApp.initDataUnsafe.user 
-                ? Telegram.WebApp.initDataUnsafe.user.username || Telegram.WebApp.initDataUnsafe.user.first_name 
-                : 'Пользователь';
-
-            document.getElementById('welcome-user').textContent = userName;
-            
-            // Установка имени пользователя для экрана ввода статистики
-            const statUserElement = document.getElementById('stat-user');
-            if (statUserElement) {
-                statUserElement.textContent = userName; 
-            }
-
+            // Прячем экран ошибки, показываем основное приложение
+            document.getElementById('token-error').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -145,6 +157,7 @@
                 window.Telegram.WebApp.expand();
             }
             
+            // Запускаем первую навигацию
             navigate('dashboard');
         }
 
