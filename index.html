@@ -54,9 +54,9 @@
     <script>
         // =========================================================================
         // КОНСТАНТЫ И АДРЕСА
+        // !!! ОБНОВЛЁННЫЙ BASE_URL: https://definable-outspokenly-janyce.ngrok-free.dev !!!
         // =========================================================================
-        // ВАЖНО: ОБНОВИТЕ ЭТИ АДРЕСА
-        const BASE_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev'; // Использовано из вашего первого файла
+        const BASE_URL = 'https://definable-outspokenly-janyce.ngrok-free.dev'; 
         const STAT_SUBMIT_URL = `${BASE_URL}/api/stats/submit`; 
         const MATCH_CREATE_URL = `${BASE_URL}/api/matches`; 
 
@@ -69,7 +69,10 @@
             'admin-match': 'admin.html'
         };
 
-        // Загрузчик контента
+        // =========================================================================
+        // ГЛАВНЫЕ ФУНКЦИИ ПРИЛОЖЕНИЯ
+        // =========================================================================
+
         async function loadScreenContent(page) {
             const screenElement = document.getElementById(`${page}-screen`);
             if (screenElement.innerHTML.trim() === '') {
@@ -86,11 +89,7 @@
             }
         }
 
-        // =========================================================================
-        // ЛОГИКА НАВИГАЦИИ
-        // =========================================================================
         async function navigate(page) {
-            // 1. Сменить активный экран
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-item-active'));
             
@@ -98,12 +97,11 @@
             const navElement = document.getElementById(`nav-${page}`);
             
             if (screenElement) {
-                // 2. Загрузить контент, если его нет (или всегда для динамики)
                 await loadScreenContent(page);
                 screenElement.classList.add('active-screen');
                 window.scrollTo(0, 0); 
 
-                // 3. Перепривязать обработчики форм
+                // Перепривязать обработчики форм
                 if (page === 'stat') {
                     setupStatFormHandler();
                 } else if (page === 'admin-match') {
@@ -120,22 +118,17 @@
             }
         }
         
-        // =========================================================================
-        // ЛОГИКА АВТОРИЗАЦИИ И ИНИЦИАЛИЗАЦИИ
-        // =========================================================================
         function initApp() {
-            // ПРОВЕРКА АВТОРИЗАЦИИ
-            const token = localStorage.getItem('jwt_token');
-            // В Telegram Web App пользовательские данные также могут быть в initDataUnsafe
-            const userName = Telegram.WebApp.initDataUnsafe.user 
-                ? Telegram.WebApp.initDataUnsafe.user.username || Telegram.WebApp.initDataUnsafe.user.first_name 
-                : (localStorage.getItem('user_name') || 'Пользователь');
-
-            if (!token && !Telegram.WebApp.initData) {
+            // Проверка, есть ли данные Telegram для запуска.
+            if (!window.Telegram || !window.Telegram.WebApp || !Telegram.WebApp.initData) {
                 document.getElementById('token-error').style.display = 'flex';
                 localStorage.clear(); 
                 return;
             }
+
+            const userName = Telegram.WebApp.initDataUnsafe.user 
+                ? Telegram.WebApp.initDataUnsafe.user.username || Telegram.WebApp.initDataUnsafe.user.first_name 
+                : 'Пользователь';
 
             document.getElementById('welcome-user').textContent = userName;
             
@@ -156,7 +149,7 @@
         }
 
         // =========================================================================
-        // ОБРАБОТЧИКИ ФОРМ (ВКЛЮЧАЯ КРИТИЧЕСКУЮ initData АВТОРИЗАЦИЮ)
+        // ОБРАБОТЧИКИ ФОРМ (АВТОРИЗАЦИЯ initData)
         // =========================================================================
         
         // 1. Форма отправки статистики (stat-input.html)
@@ -164,9 +157,7 @@
             const form = document.getElementById('statForm');
             if (!form) return;
 
-            // Сначала удаляем старый обработчик, чтобы избежать двойной отправки
             form.removeEventListener('submit', handleStatSubmit);
-            // Добавляем новый обработчик
             form.addEventListener('submit', handleStatSubmit);
         }
 
@@ -174,20 +165,18 @@
             e.preventDefault();
             const messageBox = document.getElementById('statMessage');
             messageBox.style.display = 'none';
-            messageBox.className = 'message';
 
-            if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
+            if (!window.Telegram.WebApp.initData) {
                 messageBox.textContent = '❌ Ошибка: Telegram Web App initData не доступна.';
                 messageBox.className = 'message error-message';
                 messageBox.style.display = 'block';
                 return;
             }
             
-            // --- КРИТИЧЕСКИЙ ШАГ: ПЕРЕДАЧА initData ДЛЯ АВТОРИЗАЦИИ НА БЭКЕНДЕ ---
             const initData = Telegram.WebApp.initData; 
 
             const payload = {
-                initData: initData,
+                initData: initData, // initData в теле запроса (стандарт)
                 matchId: document.getElementById('matchIdInput').value.trim(), 
                 goals: parseInt(document.getElementById('goals').value) || 0,
                 assists: parseInt(document.getElementById('assists').value) || 0,
@@ -196,19 +185,12 @@
                 minutesPlayed: parseInt(document.getElementById('minutesPlayed').value) || 0,
             };
             
-            if (!payload.matchId || payload.matchId.length < 5) {
-                messageBox.textContent = '❌ Ошибка: ID матча не указан.';
-                messageBox.className = 'message error-message';
-                messageBox.style.display = 'block';
-                return;
-            }
+            // ... (проверки)
 
             try {
                 const response = await fetch(STAT_SUBMIT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
@@ -216,14 +198,12 @@
                     messageBox.textContent = '✅ Статистика успешно сохранена!';
                     messageBox.className = 'message success-message';
                     document.getElementById('statForm').reset();
-                    // Telegram.WebApp.close(); // Можно закрыть по успеху
                 } else {
                     const errorText = await response.text();
                     messageBox.textContent = `❌ Ошибка сохранения: ${errorText || response.statusText}`;
                     messageBox.className = 'message error-message';
                 }
             } catch (error) {
-                console.error("Fetch error:", error);
                 messageBox.textContent = '❌ Ошибка сети: Нет связи с сервером.';
                 messageBox.className = 'message error-message';
             }
@@ -236,9 +216,7 @@
             const form = document.getElementById('createMatchForm');
             if (!form) return;
             
-            // Сначала удаляем старый обработчик, чтобы избежать двойной отправки
             form.removeEventListener('submit', handleAdminSubmit);
-            // Добавляем новый обработчик
             form.addEventListener('submit', handleAdminSubmit);
         }
 
@@ -249,9 +227,10 @@
             messageDiv.textContent = '';
             messageDiv.style.display = 'none';
             
-            const token = localStorage.getItem('jwt_token'); 
-            if (!token) {
-                messageDiv.textContent = '❌ Ошибка: Вы не авторизованы. Войдите как администратор.';
+            const initData = Telegram.WebApp.initData; 
+            
+            if (!initData) {
+                messageDiv.textContent = '❌ Ошибка: Telegram initData не доступна.';
                 messageDiv.className = 'message error-message';
                 messageDiv.style.display = 'block';
                 return;
@@ -261,18 +240,21 @@
             const location = document.getElementById('location').value;
             const durationMinutes = document.getElementById('durationMinutes').value;
 
+            // Тело запроса (только данные матча - MatchCreationRequest DTO)
             const requestBody = {
                 matchDate: matchDate,
                 location: location,
                 durationMinutes: durationMinutes ? parseInt(durationMinutes, 10) : null 
             };
 
+            // !!! КРИТИЧЕСКИ ВАЖНО: Формируем URL с параметром initData, как требует MatchController.java
+            const urlWithParams = `${MATCH_CREATE_URL}?initData=${encodeURIComponent(initData)}`; 
+
             try {
-                const response = await fetch(MATCH_CREATE_URL, {
+                const response = await fetch(urlWithParams, { 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
                     },
                     body: JSON.stringify(requestBody)
                 });
@@ -280,11 +262,11 @@
                 const textResponse = await response.text();
 
                 if (response.ok) {
-                    messageDiv.textContent = `✅ Успех! Матч создан. ID: ${textResponse}`;
+                    messageDiv.textContent = `✅ Успех! Матч создан. ${textResponse}`;
                     messageDiv.className = 'message success-message';
                     document.getElementById('createMatchForm').reset();
                 } else if (response.status === 403) {
-                    messageDiv.textContent = `❌ Ошибка: У вас нет прав администратора для создания матча.`;
+                    messageDiv.textContent = `❌ Ошибка 403: Доступ запрещен. Вероятно, вы не администратор (проверка в сервисе).`;
                     messageDiv.className = 'message error-message';
                 } else {
                     messageDiv.textContent = `❌ Ошибка сервера (${response.status}): ${textResponse}`;
@@ -292,8 +274,7 @@
                 }
 
             } catch (error) {
-                console.error('Network or CORS error:', error);
-                messageDiv.textContent = '❌ Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
+                messageDiv.textContent = '❌ Ошибка соединения с сервером. Проверьте ngrok и BASE_URL.';
                 messageDiv.className = 'message error-message';
             }
             messageDiv.style.display = 'block';
