@@ -1,0 +1,24 @@
+<div class="header-section">
+    <h1>Админ: Создание матча</h1>
+    <p class="text-hint mt-1">Только для администраторов. Создайте новое событие.</p>
+</div>
+<div class="card">
+    <form id="createMatchForm">
+        <label for="matchDate">Дата и время матча:</label>
+        <input type="datetime-local" id="matchDate" required class="w-full">
+
+        <label for="location">Местоположение:</label>
+        <input type="text" id="location" placeholder="Например: Поле у школы №5" required class="w-full">
+
+        <label for="durationMinutes">Продолжительность (минут, опционально):</label>
+        <input type="number" id="durationMinutes" placeholder="Например: 90" min="1" class="w-full">
+
+        <button type="submit" class="primary-button" style="background-color: var(--accent-green);">
+            Создать Матч
+        </button>
+    </form>
+    <div id="adminMatchMessage" class="message" style="display: none;"></div>
+</div>
+
+<div id="temp-admin-logic" style="display: none;">
+    </div>
