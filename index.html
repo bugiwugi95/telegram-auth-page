@@ -251,12 +251,15 @@
 
             const matchDate = document.getElementById('matchDate').value;
             const location = document.getElementById('location').value;
+            // !!! НОВОЕ ПОЛЕ !!!
+            const opponentTeamName = document.getElementById('opponentTeamName').value;
             const durationMinutes = document.getElementById('durationMinutes').value;
 
-            // Тело запроса (только данные матча - MatchCreationRequest DTO)
+            // Тело запроса (теперь включает opponentTeamName)
             const requestBody = {
                 matchDate: matchDate,
                 location: location,
+                opponentTeamName: opponentTeamName, // ДОБАВЛЕНО
                 durationMinutes: durationMinutes ? parseInt(durationMinutes, 10) : null 
             };
 
