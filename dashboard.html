@@ -1,52 +1,46 @@
-<div class="header-section">
-    <h1>Привет, <span id="welcome-user" class="font-medium">Пользователь</span>!</h1>
-    <p class="text-hint mt-1">Обзор вашей игровой статистики и последних матчей.</p>
+<div class="header">
+    <h1 class="header-title">⚽ Аналитика Команды</h1>
+    <p class="header-subtitle">Добро пожаловать, <span id="welcome-user">Загрузка...</span>!</p>
 </div>
 
-<div class="space-y-4">
-    <h2>Ваши показатели</h2>
-    <div class="grid grid-cols-2 gap-3">
-        <div class="stat-box">
-            <span class="stat-icon">⚽️</span>
-            <div class="stat-value">12</div>
-            <div class="stat-label">Голы (Сезон)</div>
+<div class="card stat-summary">
+    <h2>Сводка по игроку</h2>
+    <div class="stat-grid">
+        <div class="stat-item">
+            <span class="stat-value">5</span>
+            <span class="stat-label">Матчей</span>
         </div>
-        <div class="stat-box">
-            <span class="stat-icon">🎯</span>
-            <div class="stat-value">8</div>
-            <div class="stat-label">Ассисты (Сезон)</div>
+        <div class="stat-item">
+            <span class="stat-value">12</span>
+            <span class="stat-label">Голов</span>
         </div>
-        <div class="stat-box">
-            <span class="stat-icon">💪</span>
-            <div class="stat-value">4.5</div>
-            <div class="stat-label">Рейтинг (AVG)</div>
+        <div class="stat-item">
+            <span class="stat-value">18</span>
+            <span class="stat-label">Пасов</span>
         </div>
-        <div class="stat-box">
-            <span class="stat-icon">⏱️</span>
-            <div class="stat-value">95%</div>
-            <div class="stat-label">Процент матчей</div>
+        <div class="stat-item">
+            <span class="stat-value">3</span>
+            <span class="stat-label">Ошибок</span>
         </div>
     </div>
+</div>
 
-    <h2 class="mt-4">Последний матч</h2>
-    <div class="card match-card" onclick="navigate('analytics')"> 
-        <div class="flex items-center justify-between mb-2">
-            <span class="text-hint">📅 28 окт 2025 | 18:00</span>
-            <div class="match-result-badge badge-win">Победа 🏆</div>
-        </div>
-        <div class="font-medium">vs ФК Спартак</div>
-        <div class="text-hint">Счет: 2:1</div>
-    </div>
+<div class="card match-schedule">
+    <h2>Ближайший матч</h2>
+    <p class="match-info">
+        🗓️ **18 Ноября, 20:00**
+        <br>
+        📍 **Стадион "Победа"**
+        <br>
+        🆚 **Против ФК "Стрела"**
+    </p>
+    <button class="btn btn-primary">Посмотреть детали</button>
+</div>
 
-    <h2 class="mt-4">Все матчи</h2>
-    <div class="space-y-3">
-        <div class="card match-card" onclick="navigate('analytics')">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-hint">📅 21 окт 2025</span>
-                <div class="match-result-badge badge-draw">Ничья 🤝</div>
-            </div>
-            <div class="font-medium">vs ФК Динамо</div>
-            <div class="text-hint">Счет: 1:1</div>
-        </div>
-    </div>
+<div class="card team-news">
+    <h2>Новости команды</h2>
+    <ul class="news-list">
+        <li>🔔 Тренировка перенесена на завтра 19:00.</li>
+        <li>🏆 Капитан назначен: <span class="text-highlight">@ivanov_s</span>.</li>
+    </ul>
 </div>
